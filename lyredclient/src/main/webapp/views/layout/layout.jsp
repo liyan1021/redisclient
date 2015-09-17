@@ -119,9 +119,7 @@
 					  "data" : {
 						  	"dataType": 'json', 
 					    	"url" :  function (node) {
-					    	      return node.id === '#' ? 
-					    	    	"../../redis/getConnectionList.do": 
-					    	    	"../../redis/getDataBase.do";
+					    	      return node.id === '#' ? "../../redis/getConnectionList.do" : "../../redis/getDataBase.do";
 							},
 					    	"data" : function (node) {
 					      	return { 'id' : node.id };
@@ -130,7 +128,6 @@
 				}})
 				.on('changed.jstree', function (e, data) {
 				    var i, j, r = [];
-				    console.dir(data.node.parent);
 				    if(data.node.parent!="#"){
 					    for(i = 0, j = data.selected.length; i < j; i++) {
 					      r.push(data.instance.get_node(data.selected[i]).text);
