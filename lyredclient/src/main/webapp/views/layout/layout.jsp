@@ -48,7 +48,6 @@
 			<div class="col-sm-3 col-md-2 sidebar">
 				<div id="keyTree">
 				</div>
-				<a href="#" onclick="redisDataPage()">asdasd</a>
 			</div>
 		<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" id="dataPage">
 			
@@ -113,39 +112,35 @@
 	<script src="../../js/bootstrap.min.js"></script>
 	<script src="../../js/jstree.min.js"></script>
 	<script type="text/javascript">
+		$(function () {
+	
+			$('#keyTree').jstree({
+				"core" : {
+					  "data" : {
+						  	"dataType": 'json', 
+					    	"url" :  function (node) {
+					    	      return node.id === '#' ? 
+					    	    	"../../redis/getConnectionList.do": 
+					    	    	"../../redis/getDataBase.do";
+							},
+					    	"data" : function (node) {
+					      	return { 'id' : node.id };
+					    }
+					  }
+				}})
+				.on('changed.jstree', function (e, data) {
+				    var i, j, r = [];
+				    console.dir(data.node.parent);
+				    if(data.node.parent!="#"){
+					    for(i = 0, j = data.selected.length; i < j; i++) {
+					      r.push(data.instance.get_node(data.selected[i]).text);
+					    }
+					    alert(r);
+				    }
+				    //$('#event_result').html('Selected: ' + r.join(', '));
+				  });
+		});
 
-		$('#keyTree').jstree({ 'core' : {
-		    'data' : [
-		       { "id" : "ajson1", "parent" : "#", "text" : "连接1" },
-		       { "id" : "ajson2", "parent" : "#", "text" : "连接2" },
-		       { "id" : "ajson3", "parent" : "ajson2", "text" : "db0" },
-		       { "id" : "ajson4", "parent" : "ajson2", "text" : "db1" },
-		       { "id" : "ajson5", "parent" : "ajson2", "text" : "db2" },
-		       { "id" : "ajson6", "parent" : "ajson2", "text" : "db3" },
-		       { "id" : "ajson7", "parent" : "ajson2", "text" : "db4" },
-		       { "id" : "ajson8", "parent" : "ajson2", "text" : "db5" },
-		       { "id" : "ajson9", "parent" : "ajson2", "text" : "db6" },
-		       { "id" : "ajson10", "parent" : "ajson2", "text" : "db7" },
-		       { "id" : "ajson11", "parent" : "ajson2", "text" : "db8" },
-		       { "id" : "ajson12", "parent" : "ajson2", "text" : "db9" },
-		    ]
-		} });
-		function redisDataPage(){
-
-			$.ajax({
-				type : 'POST',
-				url : "../../RedisClientAction",
-				success :function(data){
-					console.dir(data);
-					$("#dataPage").html(data);
-				},
-				error : function(data) {  
-				   console.dir(data);
-				   alert("异常！");  
-				   $("#dataPage").html(data.responseText);
-				}  
-			});
-		}
 	</script>
 </body>
 </html>

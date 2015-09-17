@@ -1,33 +1,28 @@
 package com.liyan.redis.action;
 
-import java.io.IOException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-/**
- * Servlet implementation class redisDataAction
- */
-public class RedisClientAction extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.sendRedirect("views/page/redis_data.jsp");
-	}
-
+@Controller
+@RequestMapping(value = "/redis", produces = "text/plain; charset=UTF-8")
+public class RedisClientAction {
+	@RequestMapping("/dataPage")
+    public String dataPage() {
+		return "redis_data";
+    }
+	@RequestMapping("/getDataBase")
+    public @ResponseBody String getDataBase(String id) {
+		System.out.println(111);
+		 return "[{ \"parent\":\"#\", \"text\" : \"db0\", \"children\" : false },{\"parent\":\"#\", \"text\" : \"db1\", \"children\" : false }]";
+    }
+	
+	@RequestMapping("/getConnectionList")
+    public @ResponseBody String getConnectionList(String id) {
+		System.out.println(id);
+		return "[{ \"text\" : \"Root 1\", \"children\" : true },{ \"text\" : \"Root 2\", \"children\" : true }]";
+    } 
+	
+	
 }
