@@ -14,7 +14,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.liyan.redis.component.cache.redis.RedisCacheService;
 import com.liyan.redis.util.ClassPathProperties;
@@ -42,6 +44,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author liyan
  *
  */
+@Scope("prototype")  
 @Component
 public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean {
 
@@ -51,33 +54,21 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	/**
 	 * redis读服务器地址 
 	 */
-	private String redisServerA ;
-	
-	/**
-	 * redis写服务器地址 
-	 */
-	private String redisServerB;
+	private String redisServer ;
 	
 	/**
 	 * redis 服务器端口
 	 */
-	private int redisPortA ; 
+	private int redisPort ;
 	
+	private Jedis jedis ; 
 	
-	/**
-	 * redis 服务器端口
-	 */
-	private int redisPortB ;
-	
-	
-	private JedisPool jedisPoolA ; 
-	private JedisPool jedisPoolB ; 
+	private JedisPool jedisPool ; 
 	
 	/**
 	 * 验证吗
 	 */
-	private String authStrA = "" ;
-	private String authStrB = "" ;
+	private String authStr = "" ;
 	
 	private int timeout =  300 ;
 	
@@ -105,16 +96,13 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 		
 		ClassPathProperties classPathProperties = new ClassPathProperties("redis.properties");
 		
-		redisServerA = classPathProperties.getProperty("REDIS.SERVER.A");
-		redisServerB = classPathProperties.getProperty("REDIS.SERVER.B");
+		redisServer = classPathProperties.getProperty("REDIS.SERVER.A");
 		
-		redisPortA = Integer.parseInt(classPathProperties.getProperty("REDIS.PORT.A"));
-		redisPortB = Integer.parseInt(classPathProperties.getProperty("REDIS.PORT.B"));
+		redisPort = Integer.parseInt(classPathProperties.getProperty("REDIS.PORT.A"));
 		
 		timeout = Integer.parseInt(classPathProperties.getProperty("REDIS.TIME_OUT"));
 		
-		authStrA = classPathProperties.getProperty("REDIS.AUTH.A");
-		authStrB = classPathProperties.getProperty("REDIS.AUTH.B");
+		authStr = classPathProperties.getProperty("REDIS.AUTH.A");
 	
 	}
 
@@ -127,11 +115,8 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 *
 	 * @return
 	 */
-	public String getRedisServerA() {
-		return redisServerA;
-	}
-	public String getRedisServerB() {
-		return redisServerB;
+	public String getRedisServer() {
+		return redisServer;
 	}
 	/**
 	 * 设置redis 服务器地址
@@ -141,13 +126,9 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 *
 	 * @param redisServer
 	 */
-	public void setRedisServerA(String redisServerA) {
-		this.redisServerA = redisServerA;
+	public void setRedisServer(String redisServer) {
+		this.redisServer = redisServer;
 	}
-	public void setRedisServerB(String redisServerB) {
-		this.redisServerB = redisServerB;
-	}
-	
 	/**
 	 * 获取redis服务器端口号
 	 *
@@ -157,13 +138,9 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @return
 	 */
 
-	public int getRedisPortA() {
-		return redisPortA;
+	public int getRedisPort() {
+		return redisPort;
 	}
-	public int getRedisPortB() {
-		return redisPortB;
-	}
-
 	/**
 	 * 设置redis服务器端口
 	 *
@@ -172,14 +149,10 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 *
 	 * @param redisPort
 	 */
-	public void setRedisPortA(int redisPortA) {
-		this.redisPortA = redisPortA;
+	public void setRedisPort(int redisPort) {
+		this.redisPort = redisPort;
 	}
 
-	public void setRedisPortB(int redisPortB) {
-		this.redisPortB = redisPortB;
-	}
-	
 	/**
 	 *  连接redis
 	 *
@@ -199,7 +172,12 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
         config.setMinIdle(200);  		
         config.setMaxIdle(1024);  		//控制一个pool最多有多少个状态为idle(空闲的)的jedis实例，默认值也是8。
 //        config.setMaxWait(5000);		//等待可用连接的最大时间，单位毫秒，默认值为-1，表示永不超时。如果超过等待时间，则直接抛出JedisConnectionException；
-        return new JedisPool(config, redisServer, redisPort,2000,auth,1);   // 默认查询DB1库，超时时间为0
+        if(StringUtils.isEmpty(auth)){
+        	jedisPool = new JedisPool(config, redisServer, redisPort,0);
+        }else{
+        	jedisPool = new JedisPool(config, redisServer, redisPort,0,auth);   // 默认查询DB1库，超时时间为0
+        }
+        return jedisPool ; 
 	}
 	/**
 	 * 关闭redis连接
@@ -210,8 +188,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 */
 	public void closeRedis(){
 		logger.debug(">>>>>断开redis服务器连接<<<<<");
-		this.getJedisPoolA().destroy();
-		this.getJedisPoolB().destroy();
+		this.getJedisPool().destroy();
 	}
 	 
 	/**
@@ -222,16 +199,18 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 *
 	 * @return
 	 */
-	public Jedis getJedisA() {
-		return this.getJedisPoolA().getResource();
+	public Jedis getJedis() {
+		return this.jedis;
+	}
+	
+	/**
+	 * 设置jedis对象
+	 * @param jedis
+	 */
+	public void setJedis(Jedis jedis) {
+		this.jedis = jedis;
 	}
 
-
-
-
-	public Jedis getJedisB() {
-		return this.getJedisPoolB().getResource();
-	}
 
 	/**
 	 * 获取jedisPool
@@ -241,23 +220,13 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 *
 	 * @return
 	 */
-	public JedisPool getJedisPoolA() {
-		return jedisPoolA;
+	public JedisPool getJedisPool() {
+		return jedisPool;
 	}
 
 
-	public void setJedisPoolA(JedisPool jedisPoolA) {
-		this.jedisPoolA = jedisPoolA;
-	}
-
-
-	public JedisPool getJedisPoolB() {
-		return jedisPoolB;
-	}
-
-
-	public void setJedisPoolB(JedisPool jedisPoolB) {
-		this.jedisPoolB = jedisPoolB;
+	public void setJedisPoolA(JedisPool jedisPool) {
+		this.jedisPool = jedisPool;
 	}
 	/**
 	 * 将列表存入缓存
@@ -269,7 +238,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @param list
 	 */
 	public synchronized void addList(String key, List<?> list) {
-		Jedis jedis = this.getJedisB();
+		Jedis jedis = this.getJedis();
 		try{
 			for(Object entity : list ){
 				jedis.lpush(key.getBytes(), SerializeUtil.serialize(entity));
@@ -290,7 +259,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @param object
 	 */
 	public synchronized void addObject(String key,Object object){
-		Jedis jedis = this.getJedisB();
+		Jedis jedis = this.getJedis();
 		try{
 			jedis.set(key.getBytes(),SerializeUtil.serialize(object));
 			jedis.expire(key, timeout);				//设置缓存过期时间
@@ -308,7 +277,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @param key
 	 */
 	public synchronized void removeList(String key){
-		Jedis jedis = this.getJedisB();
+		Jedis jedis = this.getJedis();
 		try{
 			jedis.lrange(key, 0, -1);
 		}finally{
@@ -324,7 +293,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @param keys
 	 */
 	public synchronized void removeObject(String ... keys){
-		Jedis jedis = this.getJedisB();
+		Jedis jedis = this.getJedis();
 		try{
 			jedis.del(keys);
 		}finally{
@@ -343,7 +312,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @return
 	 */
 	public synchronized List<Object> getList(String key,int start,int end){
-		Jedis jedis = this.getJedisA();
+		Jedis jedis = this.getJedis();
 		ArrayList<Object> arrayList = new ArrayList<Object>();
 		try{
 			
@@ -380,7 +349,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 */
 	public synchronized Object getObejct(String key){
 		Object deserialize;
-		Jedis jedis = this.getJedisA();
+		Jedis jedis = this.getJedis();
 		try{
 			byte[] bs = jedis.get(key.getBytes());
 			deserialize = SerializeUtil.deserialize(bs);
@@ -401,7 +370,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 */
 	public synchronized boolean isExist(String key){
 		Boolean exists;
-		Jedis jedis = this.getJedisA();
+		Jedis jedis = this.getJedis();
 		try{
 			 exists = jedis.exists(key);
 		}finally{
@@ -410,4 +379,34 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 		return exists;
 					
 	}
+
+
+
+	@Override
+	public List<String> getDataBases(String ip, int port, String auth) throws Exception {
+		Jedis jedis = this.getConnection(ip, port, auth);
+		List<String> configGet = new ArrayList<String>();
+		try{
+			 configGet = jedis.configGet("databases");
+		}finally{
+			 jedis.close();
+		}
+		return configGet ;
+	}
+
+
+	//	@Override
+	public Jedis getConnection(String ip,int port,String auth) throws Exception {
+		JedisPool pool ; 
+		if(this.getJedisPool()==null){
+			pool = this.connectRedis(ip, port, auth);	
+		}else{
+			pool = this.getJedisPool() ; 
+		}
+		this.setJedis(pool.getResource());
+		return this.getJedis();
+		
+	}
+	
+	
 }	

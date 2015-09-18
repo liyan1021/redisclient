@@ -122,8 +122,14 @@
 					    	      return node.id === '#' ? "../../redis/getConnectionList.do" : "../../redis/getDataBase.do";
 							},
 					    	"data" : function (node) {
-					      	return { 'id' : node.id };
-					    }
+					    		if(node.parent === '#'){
+					    			 return { 
+					    				 'ip' : node.data.host,
+					    				 'port':node.data.port,
+										 'auth':node.data.auth					    					 
+					    			 }
+					    		}
+					    	}
 					  }
 				}})
 				.on('changed.jstree', function (e, data) {
@@ -132,12 +138,27 @@
 					    for(i = 0, j = data.selected.length; i < j; i++) {
 					      r.push(data.instance.get_node(data.selected[i]).text);
 					    }
-					    alert(r);
 				    }
-				    //$('#event_result').html('Selected: ' + r.join(', '));
-				  });
+		
+					$.ajax({
+						type : 'POST',
+						url : "../../redis/getDataListPage.do",
+						data:{
+							db:0
+						},
+						success : function(data) {
+							console.dir(data);
+							$("#dataPage").html(data);
+						},
+						error : function(data) {
+							console.dir(data);
+							alert("异常！");
+							$("#dataPage").html(data.responseText);
+						}
+					});
+								//$('#event_result').html('Selected: ' + r.join(', '));
+							});
 		});
-
 	</script>
 </body>
 </html>

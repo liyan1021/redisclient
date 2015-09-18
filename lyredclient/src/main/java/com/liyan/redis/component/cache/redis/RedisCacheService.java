@@ -11,6 +11,8 @@ package com.liyan.redis.component.cache.redis;
 
 import java.util.List;
 
+import redis.clients.jedis.Jedis;
+
 
 /**
  * <p>TODO</p>
@@ -42,6 +44,8 @@ public interface RedisCacheService {
 	public Object getObejct(String key);
 	
 	public boolean isExist(String key);
+	
+	public List<String> getDataBases(String ip, int port, String auth) throws Exception;
 
 }
 
