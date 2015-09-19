@@ -133,31 +133,23 @@
 					  }
 				}})
 				.on('changed.jstree', function (e, data) {
-				    var i, j, r = [];
 				    if(data.node.parent!="#"){
-					    for(i = 0, j = data.selected.length; i < j; i++) {
-					      r.push(data.instance.get_node(data.selected[i]).text);
-					    }
+						$.ajax({
+							type : 'POST',
+							url : "../../redis/getDataListPage.do",
+							data:{
+								db:data.instance.get_node(data.selected[0]).data.index
+							},
+							success : function(data) {
+								$("#dataPage").html(data);
+							},
+							error : function(data) {
+								alert("异常！");
+								$("#dataPage").html(data.responseText);
+							}
+						});
 				    }
-		
-					$.ajax({
-						type : 'POST',
-						url : "../../redis/getDataListPage.do",
-						data:{
-							db:0
-						},
-						success : function(data) {
-							console.dir(data);
-							$("#dataPage").html(data);
-						},
-						error : function(data) {
-							console.dir(data);
-							alert("异常！");
-							$("#dataPage").html(data.responseText);
-						}
-					});
-								//$('#event_result').html('Selected: ' + r.join(', '));
-							});
+				});
 		});
 	</script>
 </body>

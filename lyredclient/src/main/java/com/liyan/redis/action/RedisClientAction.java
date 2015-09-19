@@ -12,25 +12,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.liyan.redis.model.ConnectionInfo;
+import com.liyan.redis.model.RedisKeyInfo;
 import com.liyan.redis.service.RedisClientService;
 
 
 @Controller
 @RequestMapping(value = "/redis", produces = "text/plain; charset=UTF-8")
 public class RedisClientAction {
-	@RequestMapping("/dataPage")
-    public String dataPage() {
-		return "redis_data";
-    }
-	
 	@Autowired
 	private RedisClientService  redisClientService; 
 	
 	
 	@RequestMapping("/getDataListPage")
-	public String getDataListPage(String db) {
-		System.out.println(db);
+	public String getDataListPage() {
 		return "redis_data";
+	}
+	@RequestMapping("/getDataList")
+	public @ResponseBody String getDataList(String db) {
+		
+		List<RedisKeyInfo> dataList = this.redisClientService.getDataList(new Integer(db));
+		JSONArray json = new JSONArray();
+		for(RedisKeyInfo info:dataList){
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("key", info.getKey());
+			jsonObject.put("type", info.getType());
+			jsonObject.put("size", info.getSize());
+			jsonObject.put("encoding", info.getEncoding());
+			json.add(jsonObject);
+		}
+		return json.toString();
+		
 	} 
 	
 	@RequestMapping("/getConnectionList")
@@ -59,7 +70,10 @@ public class RedisClientAction {
 			JSONArray jsonArray = new JSONArray();
 			for(int i = 0 ; i<dataBases.size() ; i++ ){
 				HashMap<String, Object> map = new HashMap<String,Object>();
+				JSONObject connJson = new JSONObject();
+				connJson.put("index", i);
 				map.put("parent", "#");
+				map.put("data", connJson);
 				map.put("text", dataBases.get(i));
 				map.put("children", false);
 				JSONObject jsonObject = new JSONObject(map);

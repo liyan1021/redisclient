@@ -10,6 +10,7 @@
 package com.liyan.redis.component.cache.redis;
 
 import java.util.List;
+import java.util.Set;
 
 import redis.clients.jedis.Jedis;
 
@@ -46,6 +47,14 @@ public interface RedisCacheService {
 	public boolean isExist(String key);
 	
 	public List<String> getDataBases(String ip, int port, String auth) throws Exception;
+
+	public Set<String> getAllKey(int db);
+
+	public String getKeyType(String key);
+
+	public String getKeySize(String key);
+
+	public String getKeyEncoding(String key);
 
 }
 

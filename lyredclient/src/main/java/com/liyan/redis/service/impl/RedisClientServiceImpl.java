@@ -2,12 +2,14 @@ package com.liyan.redis.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.liyan.redis.component.cache.redis.RedisCacheService;
 import com.liyan.redis.model.ConnectionInfo;
+import com.liyan.redis.model.RedisKeyInfo;
 import com.liyan.redis.service.RedisClientService;
 
 import redis.clients.jedis.Jedis;
@@ -34,17 +36,32 @@ public class RedisClientServiceImpl implements RedisClientService{
 		ArrayList<ConnectionInfo> list = new ArrayList<ConnectionInfo>();
 		ConnectionInfo connectionInfo = new ConnectionInfo();
 		connectionInfo.setConnectionName("连接1");
-		connectionInfo.setHost("192.168.1.150");
-		connectionInfo.setPort(6379);
-		connectionInfo.setAuth(null);
+		connectionInfo.setHost("10.103.16.64");
+		connectionInfo.setPort(16379);
+		connectionInfo.setAuth("dddd");
 		ConnectionInfo connectionInfo2 = new ConnectionInfo();
 		connectionInfo2.setConnectionName("连接2");
-		connectionInfo2.setHost("192.168.1.150");
-		connectionInfo2.setPort(6379);
-		connectionInfo2.setAuth(null);
+		connectionInfo2.setHost("10.102.25.226");
+		connectionInfo2.setPort(16379);
+		connectionInfo2.setAuth("Sf@Best-Redis");
 		list.add(connectionInfo);
 		list.add(connectionInfo2);
 		return list;
+	}
+	@Override
+	public List<RedisKeyInfo> getDataList(int db) {
+		//获取所有key
+		Set<String> allKey = this.redisCacheService.getAllKey(db);
+		ArrayList<RedisKeyInfo> keyList = new ArrayList<RedisKeyInfo>();
+		for(String key : allKey){
+			RedisKeyInfo redisKeyInfo = new RedisKeyInfo();
+			redisKeyInfo.setKey(key);
+			redisKeyInfo.setType(this.redisCacheService.getKeyType(key));
+			redisKeyInfo.setEncoding(this.redisCacheService.getKeyEncoding(key));
+			redisKeyInfo.setSize(1);
+			keyList.add(redisKeyInfo);
+		}
+		return keyList ; 
 	}
 	
 }

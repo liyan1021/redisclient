@@ -11,6 +11,7 @@ package com.liyan.redis.component.cache.redis.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,7 +45,6 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author liyan
  *
  */
-@Scope("prototype")  
 @Component
 public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean {
 
@@ -163,7 +163,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @param redisPort
 	 * @return
 	 */
-	public JedisPool connectRedis(String redisServer,int redisPort,String auth) throws Exception{
+	public Jedis connectRedis(String redisServer,int redisPort,String auth) throws Exception{
 		logger.debug(">>>>>连接redis服务器<<<<"+redisServer+":"+redisPort);
 		
 		JedisPoolConfig config = new JedisPoolConfig();  
@@ -177,7 +177,8 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
         }else{
         	jedisPool = new JedisPool(config, redisServer, redisPort,0,auth);   // 默认查询DB1库，超时时间为0
         }
-        return jedisPool ; 
+        this.setJedis(jedisPool.getResource());
+        return this.getJedis(); 
 	}
 	/**
 	 * 关闭redis连接
@@ -200,7 +201,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	 * @return
 	 */
 	public Jedis getJedis() {
-		return this.jedis;
+		return this.jedisPool.getResource();
 	}
 	
 	/**
@@ -384,7 +385,7 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 
 	@Override
 	public List<String> getDataBases(String ip, int port, String auth) throws Exception {
-		Jedis jedis = this.getConnection(ip, port, auth);
+		Jedis jedis = this.connectRedis(ip, port, auth);
 		List<String> configGet = new ArrayList<String>();
 		try{
 			 configGet = jedis.configGet("databases");
@@ -395,18 +396,55 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 	}
 
 
-	//	@Override
-	public Jedis getConnection(String ip,int port,String auth) throws Exception {
-		JedisPool pool ; 
-		if(this.getJedisPool()==null){
-			pool = this.connectRedis(ip, port, auth);	
-		}else{
-			pool = this.getJedisPool() ; 
+
+	@Override
+	public Set<String> getAllKey(int db) {
+		Jedis jedis = this.getJedis();
+		Set<String> keys ;  
+		try{
+			 jedis.select(db);
+			 keys = jedis.keys("*");
+		}finally{
+			 jedis.close();
 		}
-		this.setJedis(pool.getResource());
-		return this.getJedis();
-		
+		return keys ; 
 	}
+
+
+	@Override
+	public String getKeyType(String key) {
+		
+		Jedis jedis = this.getJedis();
+		String type = "";  
+		try{
+			type = jedis.type(key);
+		}finally{
+			 jedis.close();
+		}
+		return type ;
+	}
+
+
+	@Override
+	public String getKeyEncoding(String key) {
+		Jedis jedis = this.getJedis();
+		String encoding = "";  
+		try{
+			encoding = jedis.objectEncoding(key);
+		}finally{
+			jedis.close();
+		}
+		return encoding ;
+	}
+
+
+	@Override
+	public String getKeySize(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 	
 	
 }	

@@ -8,9 +8,9 @@
 			<thead>
 				<tr>
 					<th>#</th>
-					<th>Header</th>
-					<th>Header</th>
-					<th>Header</th>
+					<th>名称</th>
+					<th>类型</th>
+					<th>大小</th>
 					<th>Header</th>
 				</tr>
 			</thead>
@@ -92,41 +92,6 @@
 					<td>lacinia</td>
 					<td>arcu</td>
 				</tr>
-				<tr>
-					<td>1,011</td>
-					<td>eget</td>
-					<td>nulla</td>
-					<td>Class</td>
-					<td>aptent</td>
-				</tr>
-				<tr>
-					<td>1,012</td>
-					<td>taciti</td>
-					<td>sociosqu</td>
-					<td>ad</td>
-					<td>litora</td>
-				</tr>
-				<tr>
-					<td>1,013</td>
-					<td>torquent</td>
-					<td>per</td>
-					<td>conubia</td>
-					<td>nostra</td>
-				</tr>
-				<tr>
-					<td>1,014</td>
-					<td>per</td>
-					<td>inceptos</td>
-					<td>himenaeos</td>
-					<td>Curabitur</td>
-				</tr>
-				<tr>
-					<td>1,015</td>
-					<td>sodales</td>
-					<td>ligula</td>
-					<td>in</td>
-					<td>libero</td>
-				</tr>
 			</tbody>
 		</table>
 		<nav>
@@ -144,6 +109,27 @@
 		</ul>
 		</nav>
 	</div>
-	
+	<script type="text/javascript">
+		$(function () {
+			
+			var selected = $('#keyTree').jstree(true).get_selected();
+			var node = $('#keyTree').jstree(true).get_node (selected[0]);
+			
+			 $.ajax({
+				type : 'POST',
+				url : "../../redis/getDataList.do",
+				data:{
+					db:node.data.index
+				},
+				success : function(data) {
+					$("#dataPage").html(data);
+				},
+				error : function(data) {
+					alert("异常！");
+					$("#dataPage").html(data.responseText);
+				}
+			});
+		});
+	</script>
 </body>
 </html>
