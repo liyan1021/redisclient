@@ -1,19 +1,19 @@
 package com.liyan.redis.action;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.liyan.redis.common.Pagination;
 import com.liyan.redis.model.ConnectionInfo;
 import com.liyan.redis.model.RedisKeyInfo;
 import com.liyan.redis.service.RedisClientService;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 
 @Controller
@@ -28,18 +28,21 @@ public class RedisClientAction {
 		return "redis_data";
 	}
 	@RequestMapping("/getDataList")
-	public @ResponseBody String getDataList(String db) {
+	public @ResponseBody String getDataList(int db,int pageSize,int pageNo) {
 		
-		List<RedisKeyInfo> dataList = this.redisClientService.getDataList(new Integer(db));
-		JSONArray json = new JSONArray();
-		for(RedisKeyInfo info:dataList){
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("key", info.getKey());
-			jsonObject.put("type", info.getType());
-			jsonObject.put("size", info.getSize());
-			jsonObject.put("encoding", info.getEncoding());
-			json.add(jsonObject);
-		}
+		
+		
+		Pagination<RedisKeyInfo> dataListByPage = this.redisClientService.getDataListByPage(db,pageSize,pageNo);
+		JSONObject json = new JSONObject();
+//		for(RedisKeyInfo info:dataListByPage.getResultList()){
+//			JSONObject jsonObject = new JSONObject();
+//			jsonObject.put("key", info.getKey());
+//			jsonObject.put("type", info.getType());
+//			jsonObject.put("size", info.getSize());
+//			jsonObject.put("encoding", info.getEncoding());
+//			json.add(jsonObject);
+//		}
+		json = JSONObject.fromObject(dataListByPage);
 		return json.toString();
 		
 	} 
@@ -50,15 +53,10 @@ public class RedisClientAction {
 		JSONArray jsonArray = new JSONArray();
 		for(int i = 0 ; i<conns.size() ; i++ ){
 			ConnectionInfo connectionInfo = conns.get(i);
-			JSONObject connJson = new JSONObject();
-			HashMap<String, Object> map = new HashMap<String,Object>();
-			map.put("text", connectionInfo.getConnectionName());
-			map.put("children", true);
-			connJson.put("host", connectionInfo.getHost());
-			connJson.put("port", connectionInfo.getPort());
-			connJson.put("auth", connectionInfo.getAuth());
-			map.put("data",connJson);
-			JSONObject jsonObject = new JSONObject(map);
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.element("text", connectionInfo.getConnectionName());
+			jsonObject.element("children", true);
+			jsonObject.element("data", connectionInfo);
 			jsonArray.add(jsonObject);
 		}
 		return jsonArray.toString();
@@ -69,14 +67,13 @@ public class RedisClientAction {
 			List<String> dataBases = redisClientService.getDataBase(ip,new Integer(port),auth);
 			JSONArray jsonArray = new JSONArray();
 			for(int i = 0 ; i<dataBases.size() ; i++ ){
-				HashMap<String, Object> map = new HashMap<String,Object>();
 				JSONObject connJson = new JSONObject();
 				connJson.put("index", i);
-				map.put("parent", "#");
-				map.put("data", connJson);
-				map.put("text", dataBases.get(i));
-				map.put("children", false);
-				JSONObject jsonObject = new JSONObject(map);
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.element("parent", "#");
+				jsonObject.element("data", connJson);
+				jsonObject.element("text", dataBases.get(i));
+				jsonObject.element("children", false);
 				jsonArray.add(jsonObject);
 			}
 			return jsonArray.toString();

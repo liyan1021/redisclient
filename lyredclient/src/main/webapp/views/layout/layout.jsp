@@ -111,6 +111,7 @@
 	<script src="../../js/jquery-1.11.3.min.js"></script>
 	<script src="../../js/bootstrap.min.js"></script>
 	<script src="../../js/jstree.min.js"></script>
+	<script src="../../js/page.js"></script>
 	<script type="text/javascript">
 		$(function () {
 	
@@ -141,6 +142,7 @@
 								db:data.instance.get_node(data.selected[0]).data.index
 							},
 							success : function(data) {
+								console.dir(data);
 								$("#dataPage").html(data);
 							},
 							error : function(data) {

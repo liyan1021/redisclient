@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.liyan.redis.common.Pagination;
 import com.liyan.redis.component.cache.redis.RedisCacheService;
 import com.liyan.redis.model.ConnectionInfo;
 import com.liyan.redis.model.RedisKeyInfo;
@@ -62,6 +63,35 @@ public class RedisClientServiceImpl implements RedisClientService{
 			keyList.add(redisKeyInfo);
 		}
 		return keyList ; 
+	}
+	@Override
+	public Pagination<RedisKeyInfo> getDataListByPage(Integer db, int pageSize, int pageNo) {
+		Pagination<RedisKeyInfo> pagination = new Pagination<RedisKeyInfo>();
+		//获取所有key
+		Set<String> allKey = this.redisCacheService.getAllKey(db);
+		ArrayList<String> list = new ArrayList<String>(allKey);
+		
+		pagination.setPageNo(pageNo);
+		pagination.setPageSize(pageSize);
+		pagination.setRecordCount(list.size());
+		List<String> subList ; 
+		if(list.size() <= pagination.getToIndex()){
+			//截止到总的数据条数(当前数据不足一页，按一页显示)，这样才不会出现数组越界异常
+			subList = list.subList(pagination.getFromIndex(),pagination.getRecordCount()); 
+		}else{
+			subList = list.subList(pagination.getFromIndex(),pagination.getToIndex()); 
+		}
+		ArrayList<RedisKeyInfo> keyList = new ArrayList<RedisKeyInfo>();
+		for(String key : subList){
+			RedisKeyInfo redisKeyInfo = new RedisKeyInfo();
+			redisKeyInfo.setKey(key);
+			redisKeyInfo.setType(this.redisCacheService.getKeyType(key));
+			redisKeyInfo.setEncoding(this.redisCacheService.getKeyEncoding(key));
+			redisKeyInfo.setSize(1);
+			keyList.add(redisKeyInfo);
+		}
+		pagination.setResultList(keyList);
+		return pagination ; 
 	}
 	
 }
