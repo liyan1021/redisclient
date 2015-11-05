@@ -56,5 +56,9 @@ public interface RedisCacheService {
 
 	public String getKeyEncoding(String key);
 
+	public long ttl(String key);
+
+	public String getObejctStr(String key);
+
 }
 

@@ -13,8 +13,6 @@ import com.liyan.redis.model.ConnectionInfo;
 import com.liyan.redis.model.RedisKeyInfo;
 import com.liyan.redis.service.RedisClientService;
 
-import redis.clients.jedis.Jedis;
-
 @Service(value="redisClientService")
 public class RedisClientServiceImpl implements RedisClientService{
 	
@@ -37,16 +35,7 @@ public class RedisClientServiceImpl implements RedisClientService{
 		ArrayList<ConnectionInfo> list = new ArrayList<ConnectionInfo>();
 		ConnectionInfo connectionInfo = new ConnectionInfo();
 		connectionInfo.setConnectionName("连接1");
-		connectionInfo.setHost("10.103.16.64");
-		connectionInfo.setPort(16379);
-		connectionInfo.setAuth("dddd");
-		ConnectionInfo connectionInfo2 = new ConnectionInfo();
-		connectionInfo2.setConnectionName("连接2");
-		connectionInfo2.setHost("10.102.25.226");
-		connectionInfo2.setPort(16379);
-		connectionInfo2.setAuth("Sf@Best-Redis");
 		list.add(connectionInfo);
-		list.add(connectionInfo2);
 		return list;
 	}
 	@Override
@@ -92,6 +81,27 @@ public class RedisClientServiceImpl implements RedisClientService{
 		}
 		pagination.setResultList(keyList);
 		return pagination ; 
+	}
+	@Override
+	public RedisKeyInfo getDetail(String key) {
+		
+		RedisKeyInfo redisKeyInfo = new RedisKeyInfo();
+		redisKeyInfo.setKey(key);
+		redisKeyInfo.setType(this.redisCacheService.getKeyType(key));
+		redisKeyInfo.setEncoding(this.redisCacheService.getKeyEncoding(key));
+		redisKeyInfo.setTtl(this.redisCacheService.ttl(key));
+		if(redisKeyInfo.getType().equals("string")){
+			String obejct = this.redisCacheService.getObejctStr(key);
+			redisKeyInfo.setValue(obejct);
+		}else{
+			Object obejct = this.redisCacheService.getObejct(key);
+			redisKeyInfo.setValue((String)obejct);
+		}
+		return redisKeyInfo;
+	}
+	@Override
+	public void deleteKey(String key) {
+		this.redisCacheService.removeObject(key);
 	}
 	
 }

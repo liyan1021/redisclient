@@ -360,6 +360,17 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 		
 		return deserialize;
 	}
+	public synchronized String getObejctStr(String key){
+		String str = ""; 
+		Jedis jedis = this.getJedis();
+		try{
+			 str = jedis.get(key);
+		}finally{
+			jedis.close();
+		}
+		
+		return str;
+	}
 	/**
 	 * 查看key是否存在缓存
 	 *
@@ -443,8 +454,20 @@ public class RedisCacheServiceImpl implements RedisCacheService,InitializingBean
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
+
+
+	@Override
+	public long ttl(String key) {
+		Jedis jedis = this.getJedis();
+		Long ttl = null;  
+		try{
+			 ttl = jedis.ttl(key);
+		}finally{
+			jedis.close();
+		}
+		return ttl ;
+	}
+
 	
 	
 }	
