@@ -15,5 +15,9 @@ public interface RedisClientService {
 	List<RedisKeyInfo> getDataList(int db);
 
 	Pagination<RedisKeyInfo> getDataListByPage(Integer db, int pageSize, int pageNo);
+
+	RedisKeyInfo getDetail(String key);
+
+	void deleteKey(String key);
 	
 }

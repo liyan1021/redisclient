@@ -5,6 +5,8 @@ public class RedisKeyInfo {
 	private String type ; 
 	private int size ;
 	private String encoding ; 
+	private String value ; 
+	private long ttl ; 
 	
 	
 	public String getKey() {
@@ -30,6 +32,19 @@ public class RedisKeyInfo {
 	}
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
+	}
+
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
+	}
+	public long getTtl() {
+		return ttl;
+	}
+	public void setTtl(long ttl) {
+		this.ttl = ttl;
 	}
 	
 	

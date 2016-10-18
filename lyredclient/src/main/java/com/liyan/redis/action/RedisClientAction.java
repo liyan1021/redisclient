@@ -27,6 +27,13 @@ public class RedisClientAction {
 	public String getDataListPage() {
 		return "redis_data";
 	}
+	/**
+	 * 分页获取数据库中key
+	 * @param db
+	 * @param pageSize
+	 * @param pageNo
+	 * @return
+	 */
 	@RequestMapping("/getDataList")
 	public @ResponseBody String getDataList(int db,int pageSize,int pageNo) {
 		
@@ -47,6 +54,11 @@ public class RedisClientAction {
 		
 	} 
 	
+	/**
+	 * 获取设置的连接
+	 * @param id
+	 * @return
+	 */
 	@RequestMapping("/getConnectionList")
 	public @ResponseBody String getConnectionList(String id) {
 		List<ConnectionInfo> conns = redisClientService.getConnectionList();
@@ -61,6 +73,13 @@ public class RedisClientAction {
 		}
 		return jsonArray.toString();
 	} 
+	/**
+	 * 连接数据库
+	 * @param ip
+	 * @param port
+	 * @param auth
+	 * @return
+	 */
 	@RequestMapping("/getDataBase")
     public @ResponseBody String getDataBase(String ip,String port,String auth) {
 		try{
@@ -83,6 +102,31 @@ public class RedisClientAction {
 		}
 		
     }
-	
+	/**
+	 * 查看当前key详情 
+	 * @param key
+	 * @return
+	 */
+	@RequestMapping("/getDetail")
+	public @ResponseBody String getDetail(String key){
+		try{
+			RedisKeyInfo detail = this.redisClientService.getDetail(key);
+			JSONObject json = JSONObject.fromObject(detail);
+			return json.toString();
+		}catch(Exception e){
+			e.printStackTrace();
+			return null ; 
+		}
+	}
+	/**
+	 * 删除key
+	 * @param key
+	 * @return
+	 */
+	@RequestMapping("/deleteKey")
+	public @ResponseBody String deleteKey(String key){
+		this.redisClientService.deleteKey(key);
+		return key;
+	}
 	
 }

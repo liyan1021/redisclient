@@ -31,7 +31,7 @@ import org.apache.log4j.Logger;
  * @since 1.0
  * @version 1.0
  */
-public class SerializeUtil {
+public class SerializeUtil<T> {
 	
 	protected static Logger logger = Logger.getLogger(SerializeUtil.class.getName());
 	
