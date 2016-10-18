@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet"
+	href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+<script
+	src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script
+	src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+	$(function() {
+		alert(111);
+		var sfGrid = function(ele,opt) {
+			this.defaults = {
+				id : "",
+				url : null,
+				//表头
+				title : "",
+				//工具栏
+				toolbar : null,
+				//表头
+				columns : null,
+				//是否分页
+				pagination : false,
+				//是否隔行变色
+				isoddcolor : false,
+				//页显示
+				pagesize : 10,
+				//页索引
+				pageindex : 1,
+				//总页数
+				totalpage : null,
+				//请求参数
+				urlParam:null,
+				//是否多选
+				checkbox : false
+
+			}
+			this.settings = $.extend({}, this.defaults, opt);
+		}
+
+		sfGrid.prototype = {
+			_id : null,
+			_op : null,
+			init : function() {
+				this._id = this.settings.id;
+				_op = this;
+				this.create();
+				this.bindEvent();
+			},
+			create : function() {
+				//初始化元素
+				this.InitializeElement();
+				//初始化表头
+				this.createTableHead();
+				//初始化动态行
+				this.createTableBody();
+				//初始化搜索框
+				//if(this.settings.searchnation) this.createsearchbox();
+				//选择是否分页
+				if (this.settings.pagination){
+					this.createPagination();
+				} 
+				if(!this.settings.toolbar) this.createToolBar();
+			},
+			bindEvent : function() {
+				//添加上一页事件
+				//this.registerUpPage();
+				//添加下一页事件
+				//this.registerNextPage();
+				//添加首页事件
+				///this.registerFirstPage();
+				//添加最后一页事件
+				//this.registerlastPage();
+				
+				
+			},
+			//初始化元素
+			InitializeElement : function() {
+				//var id = this.settings.id;
+				alert(this._id);
+				$("#" + this._id).empty().append("<table id='" + this._id + "_table' class='table table-hover table-bordered'><thead><tr></tr></thead><tbody></tbody><tfoot></tfoot></table>");
+			},
+			//循环添加表头
+			createTableHead : function() {
+				var headcols = this.settings.columns;
+				if (this.settings.checkbox == true){
+					$("table[id='" + this._id + "_table'] thead tr").append("<th width='50px'><input name='chkall' type='checkbox'></th>");
+				}
+				for (var i = 0; i < headcols.length; i++) {
+					$("table[id='" + this._id + "_table'] thead tr").append("<th width=" + headcols[i].width + " align=" + headcols[i].align + ">"+ headcols[i].title + "</th>");
+				}
+			},
+			//循环添加行
+			createTableBody : function() {
+				var columns = _op.settings.columns;
+				var json = this.getAjaxDate(_op.settings.url,_op.settings.urlParam);
+				console.dir(json);
+				var rowsdata = "";
+				for (var row = 0; row < _op.settings.pagesize; row++) {
+					if (row == json.rows.length)
+						break;
+					rowsdata += "<tr>";
+					if (this.settings.checkbox == true){
+						rowsdata += '<td width="50px" align="center"><input name="chk"  type="checkbox"></td>'
+					}
+					for (var colindex = 0; colindex < columns.length; colindex++) {
+							rowsdata += '<td width=' + columns[colindex].width + ' align=' + columns[colindex].align + '>' + json.rows[row][columns[colindex].field] + '</td>';
+					}
+					rowsdata += "</tr>";
+				}
+				$("table[id='" + this._id + "_table'] tbody").empty().append(rowsdata);
+			},
+			//初始化分页
+			createPagination : function() {
+				var footHtml = "<nav><ul class='pagination'>"+
+					"<li><a href='#'>&laquo;</a></li>"+
+					"<li><a href='#'>1</a></li>"+
+					"<li><a href='#'>2</a></li>"+
+					"<li><a href='#'>3</a></li>"+
+					"<li><a href='#'>4</a></li>"+
+					"<li><a href='#'>5</a></li>"+
+					"<li><a href='#'>&raquo;</a></li></ul></nav>";
+				 $("#" + this._id + "").append(footHtml);
+			},
+			createToolBar :function(){
+				alert('创建工具栏');			
+			},
+			//异步ajax事件
+			getAjaxDate : function(url, parms) {
+				//定义一个全局变量来接受$post的返回值
+				/* var result;
+				//用ajax的同步方式
+				$.ajax({
+					url : url,
+					async : false,
+					//改为同步方式
+					data : parms,
+					success : function(data) {
+						result = data;
+					}
+				}); */
+				var result ="{'total':16,'rows': [{'ID': 1,'name': '公共js和公共css样式部分','descrtion':'描述公共js和公共css样式部分','Price': 950}]}" 
+				return  eval("("+result+")");
+
+			}
+		}
+		$.fn.grid = function (options) {
+	        var grid = new sfGrid(this, options);
+	        return this.each(function () {
+	            grid.init();
+	        });
+		}
+	});
+</script>
+<script type="text/javascript">
+$(function() {
+	alert(222);
+$("#testGrid").grid({
+    id:"testGrid",
+    url:"data.json",
+    checkbox : true,
+    columns: [
+                 { field: 'ID', title: '编号', width:50, align: 'center'},
+                 { field: 'name', title: '名称', width: 50, align: 'left' },
+                 { field: 'descrtion', title: '描述', width: 150, align: 'left' },
+                 { field: 'Price', title: '价格', width: 100, align: 'left' }
+             ],
+    pagination:true,   
+    pagesize:5
+});
+});
+</script>
+</head>
+<body>
+	<div id= "testGrid">
+		
+	</div>
+</body>
+</html>
